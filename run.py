@@ -20,6 +20,15 @@ DIRECTIONS = ['top', 'bottom', 'left', 'right']
 NUM_ROUNDS = random.randint(0, 15)
 NUM_HEDGES = random.randint(5, 40)
 
+# For example_theory_1, uncomment the line below
+#NUM_ROUNDS = 3
+
+# For example_theory_2, uncomment the line below
+#NUM_ROUNDS = 8
+
+# For example_theory_3, uncomment the line below
+#NUM_ROUNDS = 14
+
 # Proposition to describe Theseus' current position
 @proposition(E)
 class ThesPos:
@@ -663,8 +672,8 @@ def example_theory_1():
     '''
     A full example theory for our model. Hedges and number of rounds are randomized,
     but starting Theseus and Minotaur and immutable Exit positions are not. As such,
-    Theseus is expected to win most rounds, but NUM_ROUNDS = 0 or the placement of
-    hedges may prevent him from winning.
+    Theseus is expected to win most rounds, but the placement of hedges may prevent
+    him from winning. To run this theory, uncomment NUM_ROUNDS = 3 on line 24.
     See game() for a truly randomized run.
     No args.
     '''
@@ -752,9 +761,9 @@ def example_theory_1():
 def example_theory_2():
     '''
     A second full example theory for our model. Similar to first one, but here
-    Theseus is expect to lose most runs except if he has sufficient moves and
-    fortunately-placed hedges. This will likely take longer to run than the
-    first example theory.
+    Theseus is expect to lose most runs except if he has fortunately-placed hedges.
+    This will likely take longer to run than example_theory_1. To run this theory,
+    uncomment NUM_ROUNDS = 8 on line 27.
     See game() for a truly randomized run.
     No args.
     '''
@@ -822,6 +831,110 @@ def example_theory_2():
                 h_h[row][col] = "F"
     print("Horizontal hedges:")
     for row in h_h:
+        print(row)
+    print()
+
+    # Number of rounds
+    print("Number of rounds: ", NUM_ROUNDS)
+
+    # Play the game
+    turn_num = 0
+    if is_winnable(board, t_start, m_start, exit, hedges, turn_num):
+        print("Theseus escapes!")
+    else:
+        print("Theseus got eaten by the Minotaur :(")
+    T = E.compile()
+    print("Satisfiable: %s" % T.satisfiable())
+    print()
+
+
+def example_theory_3():
+    '''
+    Showcases an interesting configuration of the maze, with Theseus being farther
+    from the exit than the Minotaur, but hedges preventing the Minotaur from making
+    any effective moves. Originally derived from a run of example_theory_2.
+    This requires at least eight moves to work - to ensure this runs properly,
+    uncomment NUM_ROUNDS = 14 on line 30.
+    No args.
+    '''
+    # Set starting positions, exit, and hedges
+    e_x, e_y = 3, 5
+    t_x, t_y = 0, 2
+    m_x, m_y = 5, 2
+
+    exit = ExitSquare(e_x, e_y)
+    t_start = ThesPos(t_x, t_y)
+    constraint.add_exactly_one(E, t_start)
+    m_start = MinoPos(m_x, m_y)
+    constraint.add_exactly_one(E, m_start)
+
+    vert_h = [
+             [False, False, True, False, False, False],
+             [True, True, True, False, False, False],
+             [True, False, False, False, True, True],
+             [True, True, False, True, True, True],
+             [True, False, False, False, False, True],
+             [False, True, True, True, False, False]
+             ]
+    hor_h = [
+            [True, False, False, False, False, False],
+            [False, False, False, False, False, True],
+            [False, False, False, False, False, False],
+            [True, True, False, True, True, True],
+            [True, True, False, True, False, False],
+            [False, False, True, False, True, False]
+            ]
+    hedges = Hedges()
+    hedges.vert = vert_h
+    hedges.hor = hor_h
+    
+    # Start the board
+    board = start_board(t_x, t_y, m_x, m_y, e_x, e_y, vert_h, hor_h)
+
+    # Print some representations
+    # Theseus and Minotaur positions
+    t_and_m = []
+    for i in range(BOARD_SIZE):
+        row = ['*', '*', '*','*', '*', '*']
+        t_and_m.append(row)
+    for row in range(BOARD_SIZE):
+        for col in range(BOARD_SIZE):
+            if board[row][col].t_x and board[row][col].t_y:
+                t_and_m[row][col] = "T"
+            elif board[row][col].m_x and board[row][col].m_y:
+                t_and_m[row][col] = "M"
+            elif board[row][col].EXIT_x and board[row][col].EXIT_y:
+                t_and_m[row][col] = "E"
+    print("Starting board:")
+    for row in t_and_m:
+        print(row)
+    print()
+
+    # Vertical hedges
+    vert_h_print = [
+             ['F', 'F', 'T', 'F', 'F', 'F'],
+             ['T', 'T', 'T', 'F', 'F', 'F'],
+             ['T', 'F', 'F', 'F', 'T', 'T'],
+             ['T', 'T', 'F', 'T', 'T', 'T'],
+             ['T', 'F', 'F', 'F', 'F', 'T'],
+             ['F', 'T', 'T', 'T', 'F', 'F']
+             ]
+    print("Vertical hedges:")
+    for row in vert_h_print:
+        print(row)
+    print()
+
+    # Horizontal hedges
+    hor_h_print = [
+            ['T', 'F', 'F', 'F', 'F', 'F'],
+            ['F', 'F', 'F', 'F', 'F', 'T'],
+            ['F', 'F', 'F', 'F', 'F', 'F'],
+            ['T', 'T', 'F', 'T', 'T', 'T'],
+            ['T', 'T', 'F', 'T', 'F', 'F'],
+            ['F', 'F', 'T', 'F', 'T', 'F']
+            ]
+    print("Horizontal hedges:")
+    for row in hor_h_print:
         print(row)
     print()
 
@@ -930,4 +1043,5 @@ def game():
 # at a time!
 #example_theory_1()
 #example_theory_2()
+#example_theory_3()
 game()
